@@ -48,14 +48,20 @@ export async function createUser(userid, password, name, email) {
     password,
     name,
     email,
-    url: "rhttps://randomuser.me/api/portraits/men/29.jpg",
+    url: "https://randomuser.me/api/portraits/men/29.jpg",
   };
-
   users = [user, ...users];
   return user;
 }
 
 export async function login(userid, password) {
-  const user = users.find((user) => user.password === password);
+  const user = users.find(
+    (user) => user.userid === userid && user.password === password
+  );
+  return user;
+}
+
+export async function findByUserid(userid) {
+  const user = users.find((user) => user.userid === userid);
   return user;
 }
