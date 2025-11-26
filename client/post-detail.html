@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Detail - Node.js API Client</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>게시글 상세</h1>
+            <div class="nav-links">
+                <button onclick="window.location.href='posts.html'" class="secondary">목록으로</button>
+            </div>
+        </header>
+        
+        <div id="postDetail">
+            <!-- Post content will be loaded here -->
+        </div>
+
+        <div id="actions" style="margin-top: 2rem; display: none; gap: 1rem;">
+            <button onclick="editPost()" style="flex: 1;">수정</button>
+            <button onclick="deletePost()" class="danger" style="flex: 1;">삭제</button>
+        </div>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/post-detail.js"></script>
+</body>
+</html>
