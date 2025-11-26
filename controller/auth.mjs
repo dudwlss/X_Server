@@ -8,6 +8,7 @@ async function createJwtToken(id) {
     expiresIn: config.jwt.expiresInSec,
   });
 }
+
 export async function signup(req, res, next) {
   const { userid, password, name, email, url } = req.body;
 
@@ -40,6 +41,7 @@ export async function login(req, res, next) {
   if (!isValidPassword) {
     return res.status(401).json({ message: `아이디 또는 비밀번호 확인` });
   }
+
   const token = await createJwtToken(user.id);
   res.status(200).json({ token, user });
 }

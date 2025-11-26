@@ -1,0 +1,180 @@
+/* 기본 설정 */
+:root {
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #222;
+  --subtext: #666;
+  --border: #d0d4e4;
+  --accent: #4a6cf7;
+  --accent-dark: #3958d6;
+}
+
+/* 다크모드 변수 */
+.dark {
+  --bg: #1b1e26;
+  --card: #252a34;
+  --text: #e4e6eb;
+  --subtext: #c1c3c8;
+  --border: #3a3f4d;
+  --accent: #6d8dff;
+  --accent-dark: #5673dd;
+}
+
+/* 전체 레이아웃 */
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: 0.3s background, 0.3s color;
+}
+
+/* 네비게이션 */
+.navbar {
+  background: var(--card);
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.navbar h1 {
+  margin: 0;
+  font-size: 20px;
+  color: var(--accent);
+}
+
+.nav-btns button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* 페이지 박스 */
+.page {
+  display: none;
+  max-width: 500px;
+  margin: 30px auto;
+  padding: 20px;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border);
+}
+
+.active {
+  display: block;
+}
+
+/* 입력 요소 */
+input,
+textarea {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  transition: 0.2s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  background: var(--card);
+  outline: none;
+}
+
+/* 버튼 */
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: var(--accent);
+  border: none;
+  color: white;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+button:hover {
+  background: var(--accent-dark);
+}
+
+/* 서브 버튼 */
+button.sub {
+  background: var(--border);
+  color: var(--text);
+}
+
+button.sub:hover {
+  opacity: 0.8;
+}
+
+/* 게시글 목록 */
+#posts {
+  margin-top: 20px;
+}
+
+.post-item {
+  padding: 15px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  transition: 0.25s;
+}
+
+.post-item:hover {
+  background: var(--card);
+  cursor: pointer;
+}
+
+/* 상세 페이지 */
+#detail-title {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#detail-content {
+  margin-top: 15px;
+  padding: 15px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  line-height: 1.5;
+}
+
+/* 다크모드 토글 버튼 */
+.dark-toggle {
+  background: var(--accent);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+  .page {
+    margin: 15px;
+    padding: 16px;
+  }
+  .navbar {
+    padding: 10px 14px;
+  }
+  .navbar h1 {
+    font-size: 18px;
+  }
+}

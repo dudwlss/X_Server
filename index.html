@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게시판 (백엔드 연동 완료)</title>
+    <style>
+      body {
+        font-family: "Noto Sans KR", sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f4f4f9;
+      }
+      h1,
+      h2 {
+        color: #333;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button.secondary {
+        background-color: #6c757d;
+      }
+      .post-item {
+        border-bottom: 1px solid #eee;
+        padding: 15px 0;
+      }
+      .post-meta {
+        font-size: 0.85em;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .hidden {
+        display: none;
+      }
+      #error-msg {
+        color: red;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📢 게시판 서비스</h1>
+    <div id="error-msg"></div>
+
+    <div id="auth-section" class="container">
+      <h2 id="auth-title">로그인</h2>
+      <input type="text" id="username" placeholder="아이디" />
+      <input type="password" id="password" placeholder="비밀번호" />
+      <input
+        type="email"
+        id="email"
+        placeholder="이메일 (회원가입 시 필요)"
+        class="hidden"
+      />
+      <input
+        type="text"
+        id="name"
+        placeholder="이름 (회원가입 시 필요)"
+        class="hidden"
+      />
+      <input
+        type="text"
+        id="url"
+        placeholder="프로필 이미지 URL (선택)"
+        class="hidden"
+      />
+
+      <button id="login-btn" onclick="login()">로그인</button>
+      <button id="signup-btn" onclick="signup()" class="hidden">
+        가입하기
+      </button>
+      <button class="secondary" onclick="toggleAuthMode()">
+        회원가입/로그인 전환
+      </button>
+    </div>
+
+    <div id="main-section" class="container hidden">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <h2 id="welcome-msg">환영합니다!</h2>
+        <button class="secondary" onclick="logout()">로그아웃</button>
+      </div>
+
+      <hr />
+
+      <h3>새 글 작성</h3>
+      <textarea
+        id="post-text"
+        rows="3"
+        placeholder="무슨 생각을 하고 계신가요?"
+      ></textarea>
+      <button onclick="createPost()">게시</button>
+
+      <hr />
+
+      <h3>글 검색</h3>
+      <div style="display: flex; gap: 10px">
+        <input type="text" id="search-userid" placeholder="작성자 ID로 검색" />
+        <button onclick="getPosts()">검색</button>
+      </div>
+
+      <hr />
+
+      <h3>타임라인</h3>
+      <div id="post-list">
+        <p>로딩 중...</p>
+      </div>
+    </div>
+
+    <script>
+      // --- 설정 및 상태 ---
+      const BASE_URL = "http://127.0.0.1:8080"; // 서버 주소 (필요시 변경)
+      let isLoginMode = true;
+      let token = localStorage.getItem("token");
+
+      // --- 초기화 ---
+      checkLoginStatus();
+
+      // --- 인증 관련 함수 ---
+      function toggleAuthMode() {
+        isLoginMode = !isLoginMode;
+        document.getElementById("auth-title").innerText = isLoginMode
+          ? "로그인"
+          : "회원가입";
+        document.getElementById("login-btn").classList.toggle("hidden");
+        document.getElementById("signup-btn").classList.toggle("hidden");
+
+        // 회원가입 전용 필드 토글
+        ["email", "name", "url"].forEach((id) => {
+          document.getElementById(id).classList.toggle("hidden");
+        });
+      }
+
+      async function signup() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+        const name = document.getElementById("name").value;
+        const url = document.getElementById("url").value;
+
+        try {
+          const res = await fetch(`${BASE_URL}/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password, email, name, url }),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            alert("가입 성공! 로그인해주세요.");
+            toggleAuthMode();
+          } else {
+            showError(data.message || "가입 실패");
+          }
+        } catch (e) {
+          showError("서버 연결 오류");
+        }
+      }
+
+      async function login() {
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+
+        try {
+          const res = await fetch(`${BASE_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            token = data.token; // 토큰 저장
+            localStorage.setItem("token", token);
+            localStorage.setItem("username", username); // 편의상 저장
+            checkLoginStatus();
+          } else {
+            showError(data.message || "로그인 실패");
+          }
+        } catch (e) {
+          showError("서버 연결 오류");
+        }
+      }
+
+      function logout() {
+        token = null;
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        checkLoginStatus();
+      }
+
+      function checkLoginStatus() {
+        const authSection = document.getElementById("auth-section");
+        const mainSection = document.getElementById("main-section");
+
+        if (token) {
+          authSection.classList.add("hidden");
+          mainSection.classList.remove("hidden");
+          document.getElementById(
+            "welcome-msg"
+          ).innerText = `${localStorage.getItem("username")}님 환영합니다!`;
+          getPosts(); // 로그인 시 글 목록 로드
+        } else {
+          authSection.classList.remove("hidden");
+          mainSection.classList.add("hidden");
+        }
+      }
+
+      // --- 게시글 관련 함수 ---
+
+      // 글 목록 조회 (검색 포함)
+      async function getPosts() {
+        const searchUserid = document.getElementById("search-userid").value;
+        // 검색어가 있으면 ?userid=검색어 파라미터 추가
+        const query = searchUserid
+          ? `?username=${encodeURIComponent(searchUserid)}`
+          : "";
+        // 주의: 백엔드 코드에 따라 ?userid= 인지 ?username= 인지 확인 필요하나,
+        // 요청하신 사항에 "검색: ?userid=검색어"라고 하셔서 userid로 설정합니다.
+        // 만약 백엔드가 username을 받는다면 아래 url을 수정하세요.
+
+        const url = `${BASE_URL}/post${
+          searchUserid ? `?userid=${searchUserid}` : ""
+        }`;
+
+        try {
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            renderPosts(data);
+          } else {
+            // 401이면 토큰 만료 가능성
+            if (res.status === 401) logout();
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // 글 작성
+      async function createPost() {
+        const text = document.getElementById("post-text").value;
+
+        if (!text) return alert("내용을 입력하세요");
+
+        try {
+          // 요청하신 사항 반영: title 없이 text만 전송
+          const res = await fetch(`${BASE_URL}/post`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ text }),
+          });
+
+          if (res.ok) {
+            document.getElementById("post-text").value = ""; // 입력창 초기화
+            getPosts(); // 목록 갱신
+          } else {
+            alert("글 작성 실패");
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // 화면 렌더링
+      function renderPosts(posts) {
+        const list = document.getElementById("post-list");
+        list.innerHTML = "";
+
+        // posts가 배열인지 확인 (백엔드 응답 구조에 따라 data.data 일수도 있음)
+        const postArray = Array.isArray(posts) ? posts : posts.data || [];
+
+        if (postArray.length === 0) {
+          list.innerHTML = "<p>게시글이 없습니다.</p>";
+          return;
+        }
+
+        postArray.forEach((post) => {
+          const div = document.createElement("div");
+          div.className = "post-item";
+
+          // 날짜 포맷팅
+          const date = new Date(post.createdAt).toLocaleString();
+
+          div.innerHTML = `
+                    <div class="post-meta">
+                        <strong>${
+                          post.username || post.userId || "익명"
+                        }</strong> | ${date}
+                    </div>
+                    <div class="post-content">${post.text}</div>
+                `;
+          list.appendChild(div);
+        });
+      }
+
+      function showError(msg) {
+        const el = document.getElementById("error-msg");
+        el.innerText = msg;
+        setTimeout(() => (el.innerText = ""), 3000);
+      }
+    </script>
+  </body>
+</html>

@@ -4,9 +4,10 @@ import authRouter from "./router/auth.mjs";
 import { config } from "./config.mjs";
 import MongoDB from "mongodb";
 import { connectDB } from "./db/database.mjs";
+import cors from "cors";
 
-// 미들웨어 순서가 맞아야됨
 const app = express();
+app.use(cors()); // app = express()
 app.use(express.json());
 app.use("/post", postsRouter);
 app.use("/auth", authRouter);
